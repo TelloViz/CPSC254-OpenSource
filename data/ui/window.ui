@@ -24,21 +24,10 @@
 		</child>
 		<child>
 			<object class="AdwOverlaySplitView" id="overlay_split_view">
-				<!-- <property name="max-sidebar-width">440.0</property> -->
-				<!-- <property name="min-sidebar-width">300.0</property> -->
-				<!-- <property name="show-sidebar" bind-source="sidebar_show_button" bind-property="active" bind-flags="bidirectional">True</property> -->
-				<!-- <property name="sidebar-position">end</property> -->
-				<!-- <property name="sidebar-width-fraction">0.40</property> -->
 				<property name="content">
 					<object class="AdwBreakpointBin">
 						<property name="height-request">340</property>
 						<property name="width-request">350</property>
-						<!-- <child> -->
-						<!-- 	<object class="AdwBreakpoint"> -->
-						<!-- 		<condition>max-width: 530px</condition> -->
-						<!-- 		<setter object="toolbar_layout_box" property="orientation">vertical</setter> -->
-						<!-- 	</object> -->
-						<!-- </child> -->
 						<child>
 							<object class="AdwToolbarView" id="toolbar_view">
 								<property name="content">
