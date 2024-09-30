@@ -269,6 +269,21 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
             except IOError:
                 print(f"Error reading {path}.")
 
+    def brightness_to_ascii(self, brightness):
+        # Define the mapping based on brightness levels
+        if brightness == 0:
+            return ' '  # No character for black (if you want nothing)
+        elif 0 < brightness <= 0.2:
+            return '-'  # Lightest
+        elif 0.2 < brightness <= 0.4:
+            return '+'  # Slightly darker
+        elif 0.4 < brightness <= 0.6:
+            return 'X'  # Darker
+        elif 0.6 < brightness <= 0.8:
+            return '#'  # Darkest
+        else:
+            return '#'  # Full black, if necessary
+
     def pixbuf_to_rgb_hsb(self, pixels, width, height, channels, rowstride):
         rgb_values = []
         hsb_values = []
@@ -359,8 +374,25 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
                 rgb, hsb = self.pixbuf_to_rgb_hsb(pixels, width, height, channels, rowstride)
 
                 # Print the RGB and HSB values for demonstration
-                for i in range(len(rgb)):
-                    print(f"RGB: {rgb[i]}, HSB: {hsb[i]}")
+                # for i in range(len(rgb)):
+                #     print(f"RGB: {rgb[i]}, HSB: {hsb[i]}")
+
+                # for i in range(len(rgb)):
+                #     print(f"{hsb[i][2]}")
+
+                output_path = os.path.expanduser("~/Desktop/ascii-draw/output.txt")
+                # Open the specified path for writing
+                with open(output_path, 'w') as file_out:
+                    for y in range(height):
+                        for x in range(width):
+                            # Correctly calculate the index for the HSB values
+                            pixel_index = (y * rowstride + x * channels)  # Accessing the RGB values
+                            brightness = hsb[pixel_index // channels][2]  # Accessing brightness value
+                            ascii_char = self.brightness_to_ascii(brightness)  # Get ASCII character based on brightness
+                            file_out.write(ascii_char)  # Write the ASCII character
+                        file_out.write("\n")  # New line after each row
+
+                print(f"HSB values written to {output_path}")
 
             except IOError:
                 print(f"Error reading {path}.")
