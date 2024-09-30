@@ -244,7 +244,7 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
 
         self.change_theme()
 
-        # self.update_canvas_size_spins()
+        #self.update_canvas_size_spins()
 
     def open_palettes_dir(self):
         webbrowser.open(f"{self.data_dir}/palettes/")
