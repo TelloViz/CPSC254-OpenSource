@@ -250,6 +250,41 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
             except IOError:
                 print(f"Error reading {path}.")
 
+    def import_image(self):
+        print("import_image called")
+
+        # copy/pasted code from open_file()
+        if not self.canvas.is_saved:
+            self.save_changes_message(self.import_image_callback)
+        else:
+            self.import_image_callback()
+
+    # Copied open_file_callback(self) function
+    def import_image_callback(self):
+        dialog = Gtk.FileDialog(
+            title=_("Import Image"),
+        )
+        dialog.open(self, None, self.on_import_image_response)
+        self.canvas.clear_preview()
+
+    # Copied on_open_file_response(self, dialog, response) function
+    def on_import_image_response(self, dialog, response):
+        file = dialog.open_finish(response)
+        print(f"Selected File: {file.get_path()}")
+
+        if file:
+            path = file.get_path()
+            try:
+                print(path)
+                # with open(path, 'r') as file:
+                #     input_string = file.read()
+                # self.canvas.set_content(input_string)
+                #self.file_path = path
+                #file_name = os.path.basename(self.file_path)
+                #self.title_widget.set_subtitle(file_name)
+            except IOError:
+                print(f"Error reading {path}.")
+
     def new_canvas(self):
         if not self.canvas.is_saved:
             self.save_changes_message(self.make_new_canvas)
