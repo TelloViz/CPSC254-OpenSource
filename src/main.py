@@ -87,6 +87,8 @@ class AsciiDrawApplication(Adw.Application):
 
     def on_import_action(self, *args):
         print("Import clicked")
+        # TODO call code in window for importing
+        self.win.import_image()
 
     def on_open_action(self, *args):
         self.win.open_file()
