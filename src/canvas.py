@@ -88,9 +88,8 @@ class Canvas(Adw.Bin):
         self.x_mul = 12
         self.y_mul = 24
 
-        self.canvas_width = 40
-        self.canvas_height = 20
-
+        self.canvas_width = 100
+        self.canvas_height = 50
         self.draw_drawing_area.set_size_request(self.canvas_width*self.x_mul, self.canvas_height*self.y_mul)
 
         for y in range(self.canvas_height):
@@ -108,8 +107,8 @@ class Canvas(Adw.Bin):
 
         self.redo_changes = []
 
-        self.canvas_max_x = 100
-        self.canvas_max_y = 50
+        self.canvas_max_x = 400
+        self.canvas_max_y = 200
 
         self.scale_factor = 1
 

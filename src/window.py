@@ -270,19 +270,13 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
                 print(f"Error reading {path}.")
 
     def brightness_to_ascii(self, brightness):
-        # Define the mapping based on brightness levels
-        if brightness == 0:
-            return ' '  # No character for black (if you want nothing)
-        elif 0 < brightness <= 0.2:
-            return '-'  # Lightest
-        elif 0.2 < brightness <= 0.4:
-            return '+'  # Slightly darker
-        elif 0.4 < brightness <= 0.6:
-            return 'X'  # Darker
-        elif 0.6 < brightness <= 0.8:
-            return '#'  # Darkest
-        else:
-            return '#'  # Full black, if necessary
+        # Wide range of ASCII characters from dark to light
+        ascii_chars = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1{}[]?-_+~<>i!lI;:,\"^`'."
+
+        # Map brightness to the appropriate ASCII character
+        index = int(brightness * (len(ascii_chars) - 1))  # Scale brightness to index range
+        return ascii_chars[index]
+
 
     def pixbuf_to_rgb_hsb(self, pixels, width, height, channels, rowstride):
         rgb_values = []
@@ -393,6 +387,16 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
                         file_out.write("\n")  # New line after each row
 
                 print(f"HSB values written to {output_path}")
+
+                try:
+                    with open(output_path, 'r') as file:
+                        input_string = file.read()
+                    self.canvas.set_content(input_string)
+                    self.file_path = path
+                    file_name = os.path.basename(self.file_path)
+                    self.title_widget.set_subtitle(file_name)
+                except IOError:
+                    print(f"Error reading {path}.")
 
             except IOError:
                 print(f"Error reading {path}.")
