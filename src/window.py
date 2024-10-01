@@ -65,6 +65,35 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
     save_import_button = Gtk.Template.Child()
     title_widget = Gtk.Template.Child()
 
+    # Tools
+    free_button = Gtk.Template.Child()
+    rectangle_button = Gtk.Template.Child()
+    filled_rectangle_button = Gtk.Template.Child()
+    line_button = Gtk.Template.Child()
+    move_button = Gtk.Template.Child()
+    text_button = Gtk.Template.Child()
+    tree_button = Gtk.Template.Child()
+    table_button = Gtk.Template.Child()
+    picker_button = Gtk.Template.Child()
+    eraser_button = Gtk.Template.Child()
+    fill_button = Gtk.Template.Child()
+
+    primary_char_button = Gtk.Template.Child()
+    secondary_char_button = Gtk.Template.Child()
+
+    # Sidebar
+    sidebar_stack = Gtk.Template.Child()
+    sidebar_stack_switcher = Gtk.Template.Child()
+    chars_carousel = Gtk.Template.Child()
+    char_group_label = Gtk.Template.Child()
+    char_carousel_go_back = Gtk.Template.Child()
+    char_carousel_go_next = Gtk.Template.Child()
+    lines_styles_box = Gtk.Template.Child()
+
+    # Canvas side popover
+    width_spin = Gtk.Template.Child()
+    height_spin = Gtk.Template.Child()
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -100,10 +129,53 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
             self.flip = True
 
         self.canvas = Canvas(self.styles, self.flip)
+        self.canvas.bind_property('primary_selected', self.primary_char_button, 'active', GObject.BindingFlags.BIDIRECTIONAL)
+        self.canvas.bind_property('primary_char', self.primary_char_button, 'label', GObject.BindingFlags.BIDIRECTIONAL)
+        self.canvas.bind_property('secondary_char', self.secondary_char_button, 'label', GObject.BindingFlags.BIDIRECTIONAL)
         self.canvas.connect("undo-added", self.on_undo_added)
         self.canvas.connect("undo-removed", self.on_undo_removed)
         self.canvas.connect("redo-removed", self.on_redo_removed)
         self.toast_overlay.set_child(self.canvas)
+
+        self.freehand_tool = Freehand(self.canvas)
+        self.freehand_tool.bind_property('active', self.free_button, 'active', GObject.BindingFlags.BIDIRECTIONAL)
+        self.freehand_tool.add_sidebar_to(self.sidebar_stack)
+
+        self.eraser_tool = Eraser(self.canvas)
+        self.eraser_tool.bind_property('active', self.eraser_button, 'active', GObject.BindingFlags.BIDIRECTIONAL)
+        self.eraser_tool.add_sidebar_to(self.sidebar_stack)
+
+        self.rectangle_tool = Rectangle(self.canvas)
+        self.rectangle_tool.bind_property('active', self.rectangle_button, 'active', GObject.BindingFlags.BIDIRECTIONAL)
+
+        self.filled_rectangle_tool = FilledRectangle(self.canvas)
+        self.filled_rectangle_tool.bind_property('active', self.filled_rectangle_button, 'active', GObject.BindingFlags.BIDIRECTIONAL)
+
+        self.line_tool = Line(self.canvas)
+        self.line_tool.bind_property('active', self.line_button, 'active', GObject.BindingFlags.BIDIRECTIONAL)
+        self.line_tool.add_sidebar_to(self.sidebar_stack)
+
+        self.move_tool = Select(self.canvas)
+        self.move_tool.bind_property('active', self.move_button, 'active', GObject.BindingFlags.BIDIRECTIONAL)
+        self.move_tool.add_sidebar_to(self.sidebar_stack)
+
+        self.text_tool = Text(self.canvas)
+        self.text_tool.bind_property('active', self.text_button, 'active', GObject.BindingFlags.BIDIRECTIONAL)
+        self.text_tool.add_sidebar_to(self.sidebar_stack)
+
+        self.table_tool = Table(self.canvas)
+        self.table_tool.bind_property('active', self.table_button, 'active', GObject.BindingFlags.BIDIRECTIONAL)
+        self.table_tool.add_sidebar_to(self.sidebar_stack)
+
+        self.picker_tool = Picker(self.canvas)
+        self.picker_tool.bind_property('active', self.picker_button, 'active', GObject.BindingFlags.BIDIRECTIONAL)
+
+        self.tree_tool = Tree(self.canvas)
+        self.tree_tool.bind_property('active', self.tree_button, 'active', GObject.BindingFlags.BIDIRECTIONAL)
+        self.tree_tool.add_sidebar_to(self.sidebar_stack)
+
+        self.fill_tool = Fill(self.canvas)
+        self.fill_tool.bind_property('active', self.fill_button, 'active', GObject.BindingFlags.BIDIRECTIONAL)
 
         prev_btn = None
 
@@ -117,6 +189,15 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
                 name += style[2] + "   " + style[3] + "  " + style[2] + "    " + style[3] + "  " + style[3] + "  " + style[3] + "\n"
                 name += style[7] + style[1] + style[1] + style[1] + style[6] + "  " + style[7] + style[1] + style[1] + style[15] + " " + style[3] + "  " + style[14] + "  " + style[3]
             label = Gtk.Label(label = name)
+            style_btn = Gtk.ToggleButton(css_classes=["flat", "styles-preview"])
+            style_btn.set_child(label)
+            if prev_btn != None:
+                style_btn.set_group(prev_btn)
+            prev_btn = style_btn
+            style_btn.connect("toggled", self.on_style_changed, self.lines_styles_box)
+            self.lines_styles_box.append(style_btn)
+
+        self.lines_styles_box.get_first_child().set_active(True)
 
         default_palettes_ranges = [
             {"name" : "ASCII", "ranges" : [(0x0020, 0x007F)]},
@@ -125,8 +206,13 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
             {"name" : "Block Elements", "ranges" : [(0x2580, 0x25A0)]},
             {"name" : "Geometric Shapes", "ranges" : [(0x25A0, 0x25FC), (0x25FF, 0x2600)]},
             {"name" : "Arrows", "ranges" : [(0x2190, 0x21FF)]},
+            # {"name" : "Braille Patterns", "ranges" : [(0x2800, 0x28FF)]},
             {"name" : "Mathematical", "ranges" : [(0x2200, 0x22C7), (0x22CB, 0x22EA)]},
-
+            # {"name" : "Greek and Coptic", "ranges" : [(0x0370,0x03FF)]},
+            # {"name" : "Cyrillic", "ranges" : [(0x0400,0x04FF)]},
+            # {"name" : "Hebrew", "ranges" : [(0x0590,0x05FF)]},
+            # {"name" : "Hiragana", "ranges" : [(0x3040,0x309F)]},
+            # {"name" : "Katakana", "ranges" : [(0x30A0,0x30FF)]},
         ]
 
         for raw_palette in default_palettes_ranges:
@@ -136,10 +222,13 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
                     palette_chars += chr(code_point)
 
             new_palette = Palette(raw_palette["name"], palette_chars)
+            self.add_palette_to_ui(new_palette)
 
         self.drawing_area_width = 0
 
         self.file_path = ""
+
+        self.sidebar_stack.set_visible_child_name("character_page")
 
         self.data_dir = ""
 
@@ -174,6 +263,8 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
 
         self.change_theme()
 
+        self.update_canvas_size_spins()
+
     def open_palettes_dir(self):
         webbrowser.open(f"{self.data_dir}/palettes/")
 
@@ -197,6 +288,7 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
         for char in palette.chars:
             new_button = Gtk.Button(label=char, css_classes=["flat", "ascii"])
             new_button.connect("clicked", self.change_char, flow_box)
+            # new_button.set_tooltip_text(f"{char} : {unicodedata.name(char).title()}")
             new_button.set_has_tooltip(True)
             new_button.connect("query-tooltip", self.on_show_char_tooltip, char)
             flow_box.append(new_button)
@@ -227,6 +319,30 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
     def save_new_palette(self, palette):
         with open(f"{self.data_dir}/palettes/{palette.name}.txt", 'w') as file:
             file.write(palette.chars)
+
+    @Gtk.Template.Callback("char_pages_go_back")
+    def char_pages_go_back(self, btn):
+        pos = self.chars_carousel.get_position()
+        if pos == 0:
+            return
+        new_page = self.chars_carousel.get_nth_page(pos - 1)
+        self.chars_carousel.scroll_to(new_page, False)
+        self.char_group_label.set_label(new_page.get_name())
+        self.char_carousel_go_next.set_sensitive(True)
+        if pos - 1 == 0:
+            btn.set_sensitive(False)
+
+    @Gtk.Template.Callback("char_pages_go_next")
+    def char_pages_go_next(self, btn):
+        pos = self.chars_carousel.get_position()
+        if pos == self.chars_carousel.get_n_pages() - 1:
+            return
+        new_page = self.chars_carousel.get_nth_page(pos + 1)
+        self.chars_carousel.scroll_to(new_page, False)
+        self.char_group_label.set_label(new_page.get_name())
+        self.char_carousel_go_back.set_sensitive(True)
+        if pos + 1 == self.chars_carousel.get_n_pages() - 1:
+            btn.set_sensitive(False)
 
     @Gtk.Template.Callback("save_button_clicked")
     def save_button_clicked(self, btn):
@@ -489,11 +605,27 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
             self.canvas.is_saved = True
         except IOError:
             print(f"Error writing to {file_path}.")
+
+    def change_char(self, btn, flow_box):
+        if self.primary_char_button.get_active():
+            self.primary_char_button.set_label(btn.get_label())
+            self.canvas.primary_char = btn.get_label()
+        else:
+            self.secondary_char_button.set_label(btn.get_label())
+            self.canvas.secondary_char = btn.get_label()
+
     def copy_to_clipboard(self):
         text = self.canvas.get_content()
 
         clipboard = Gdk.Display().get_default().get_clipboard()
         clipboard.set(text)
+
+    @Gtk.Template.Callback("on_change_canvas_size_btn_clicked")
+    def on_change_canvas_size_btn_clicked(self, btn):
+        x = int(self.width_spin.get_value())
+        y = int(self.height_spin.get_value())
+
+        self.canvas.change_canvas_size(x, y)
 
     def on_style_changed(self, btn, box):
         child = box.get_first_child()
@@ -508,6 +640,101 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
 
         self.tree_tool.preview()
         self.table_tool.preview()
+
+    @Gtk.Template.Callback("on_increase_size_activated")
+    def update_canvas_size_spins(self, *args):
+        width, height = self.canvas.get_canvas_size()
+        self.width_spin.set_value(width)
+        self.height_spin.set_value(height)
+
+    @Gtk.Template.Callback("on_choose_picker")
+    def on_choose_picker(self, btn):
+        print("picker")
+        current_sidebar = self.sidebar_stack.get_visible_child_name()
+        if current_sidebar != "character_page" and current_sidebar != "style_page":
+            self.sidebar_stack.set_visible_child_name("character_page")
+        self.canvas.clear_preview()
+
+    @Gtk.Template.Callback("on_choose_rectangle")
+    def on_choose_rectangle(self, btn):
+        print("rect")
+        current_sidebar = self.sidebar_stack.get_visible_child_name()
+        if current_sidebar != "character_page" and current_sidebar != "style_page":
+            self.sidebar_stack.set_visible_child_name("style_page")
+        self.canvas.clear_preview()
+
+    @Gtk.Template.Callback("on_choose_filled_rectangle")
+    def on_choose_filled_rectangle(self, btn):
+        print("f rect")
+        current_sidebar = self.sidebar_stack.get_visible_child_name()
+        if current_sidebar != "character_page" and current_sidebar != "style_page":
+            self.sidebar_stack.set_visible_child_name("character_page")
+        self.canvas.clear_preview()
+
+    @Gtk.Template.Callback("on_choose_line")
+    def on_choose_line(self, btn):
+        print("line")
+        current_sidebar = self.sidebar_stack.get_visible_child_name()
+        if current_sidebar != "character_page" and current_sidebar != "style_page":
+            self.sidebar_stack.set_visible_child_name("line_page")
+        self.canvas.clear_preview()
+
+    @Gtk.Template.Callback("on_choose_text")
+    def on_choose_text(self, btn):
+        print("text")
+        current_sidebar = self.sidebar_stack.get_visible_child_name()
+        if current_sidebar != "character_page" and current_sidebar != "style_page":
+            self.sidebar_stack.set_visible_child_name("text_page")
+        self.canvas.clear_preview()
+        self.text_tool.preview_text()
+
+    @Gtk.Template.Callback("on_choose_table")
+    def on_choose_table(self, btn):
+        print("table")
+        current_sidebar = self.sidebar_stack.get_visible_child_name()
+        if current_sidebar != "character_page" and current_sidebar != "style_page":
+            self.sidebar_stack.set_visible_child_name("table_page")
+        self.table_tool.preview()
+
+    @Gtk.Template.Callback("on_choose_tree_list")
+    def on_choose_tree_list(self, btn):
+        print("tree")
+        current_sidebar = self.sidebar_stack.get_visible_child_name()
+        if current_sidebar != "character_page" and current_sidebar != "style_page":
+            self.sidebar_stack.set_visible_child_name("tree_page")
+        self.tree_tool.preview()
+
+    @Gtk.Template.Callback("on_choose_select")
+    def on_choose_select(self, btn):
+        print("move")
+        current_sidebar = self.sidebar_stack.get_visible_child_name()
+        if current_sidebar != "character_page" and current_sidebar != "style_page":
+            self.sidebar_stack.set_visible_child_name("move_page")
+        self.canvas.clear_preview()
+
+    @Gtk.Template.Callback("on_choose_free")
+    def on_choose_free(self, btn):
+        print("free")
+        current_sidebar = self.sidebar_stack.get_visible_child_name()
+        if current_sidebar != "character_page" and current_sidebar != "style_page":
+            self.sidebar_stack.set_visible_child_name("freehand_page")
+        self.canvas.clear_preview()
+
+    @Gtk.Template.Callback("on_choose_eraser")
+    def on_choose_eraser(self, btn):
+        print("eraser")
+        current_sidebar = self.sidebar_stack.get_visible_child_name()
+        if current_sidebar != "character_page" and current_sidebar != "style_page":
+            self.sidebar_stack.set_visible_child_name("eraser_page")
+        self.canvas.clear_preview()
+
+    @Gtk.Template.Callback("on_choose_fill")
+    def on_choose_fill(self, btn):
+        print("fill")
+        current_sidebar = self.sidebar_stack.get_visible_child_name()
+        if current_sidebar != "character_page" and current_sidebar != "style_page":
+            self.sidebar_stack.set_visible_child_name("character_page")
+        self.canvas.clear_preview()
 
     def on_delete_clicked(self):
         if self.move_tool.active:
@@ -555,3 +782,45 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
     def redo_last_change(self, *args):
         self.canvas.redo()
 
+    @Gtk.Template.Callback("close_sidebar")
+    def close_sidebar(self, *args):
+        self.overlay_split_view.set_show_sidebar(False)
+
+    def select_rectangle_tool(self):
+        self.rectangle_button.set_active(True)
+
+    def select_filled_rectangle_tool(self):
+        self.filled_rectangle_button.set_active(True)
+
+    def select_line_tool(self):
+        self.line_button.set_active(True)
+
+    def select_text_tool(self):
+        self.text_button.set_active(True)
+
+    def select_table_tool(self):
+        self.table_button.set_active(True)
+
+    def select_tree_tool(self):
+        self.tree_button.set_active(True)
+
+    def select_free_tool(self):
+        self.free_button.set_active(True)
+
+    def select_eraser_tool(self):
+        self.eraser_button.set_active(True)
+
+    def select_arrow_tool(self):
+        self.arrow_button.set_active(True)
+
+    def select_free_line_tool(self):
+        self.free_line_button.set_active(True)
+
+    def select_picker_tool(self):
+        self.picker_button.set_active(True)
+
+    def select_move_tool(self):
+        self.move_button.set_active(True)
+
+    def select_fill_tool(self):
+        self.fill_button.set_active(True)
