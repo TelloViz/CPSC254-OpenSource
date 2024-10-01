@@ -46,7 +46,17 @@ class AsciiDrawApplication(Adw.Application):
         self.create_action('undo', self.on_undo_action, ['<control>z'])
         self.create_action('redo', self.on_redo_action, ['<control><shift>z', '<control>y'])
 
-
+        self.create_action('rectangle-tool', self.select_rectangle_tool, ['<control>r'])
+        self.create_action('filled-rectangle-tool', self.select_filled_rectangle_tool, ['<control><shift>r'])
+        self.create_action('line-tool', self.select_line_tool, ['<control>l'])
+        self.create_action('text-tool', self.select_text_tool, ['<control>t'])
+        self.create_action('table-tool', self.select_table_tool, ['<control><shift>t'])
+        self.create_action('tree-tool', self.select_tree_tool, ['<control>U'])
+        self.create_action('free-tool', self.select_free_tool, ['<control>f'])
+        self.create_action('eraser-tool', self.select_eraser_tool, ['<control>e'])
+        self.create_action('picker-tool', self.select_picker_tool, ['<control>p'])
+        self.create_action('move-tool', self.select_move_tool, ['<control>m'])
+        self.create_action('fill-tool', self.select_fill_tool, ['<control><shift>f'])
 
         self.create_action('delete-selection', self.on_delete_clicked, ['Delete'])
 
@@ -209,6 +219,45 @@ class AsciiDrawApplication(Adw.Application):
             self.win.save()
         elif response == "discard":
             self.quit()
+
+    def select_rectangle_tool(self, *args):
+        self.win.select_rectangle_tool()
+
+    def select_filled_rectangle_tool(self, *args):
+        self.win.select_filled_rectangle_tool()
+
+    def select_line_tool(self, *args):
+        self.win.select_line_tool()
+
+    def select_text_tool(self, *args):
+        self.win.select_text_tool()
+
+    def select_table_tool(self, *args):
+        self.win.select_table_tool()
+
+    def select_tree_tool(self, *args):
+        self.win.select_tree_tool()
+
+    def select_free_tool(self, *args):
+        self.win.select_free_tool()
+
+    def select_eraser_tool(self, *args):
+        self.win.select_eraser_tool()
+
+    def select_arrow_tool(self, *args):
+        self.win.select_arrow_tool()
+
+    def select_free_line_tool(self, *args):
+        self.win.select_free_line_tool()
+
+    def select_picker_tool(self, *args):
+        self.win.select_picker_tool()
+
+    def select_move_tool(self, *args):
+        self.win.select_move_tool()
+
+    def select_fill_tool(self, *args):
+        self.win.select_fill_tool()
 
 
 def main(version):
