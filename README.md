@@ -1,3 +1,11 @@
+## Disclaimer
+
+This repository is a **copy** of an existing open-source project created by [Nokse22](https://github.com/Nokse22/ascii-draw). We are using it solely for educational purposes in **CPSC 254: Open Source Development**. 
+
+The original project can be found at: [https://github.com/Nokse22/ascii-draw](https://github.com/Nokse22/ascii-draw). They have created a very thorough project that is easy to follow, modify, and well-structured. All credit for the original implementation goes to the original authors.
+
+---
+
 <img height="128" src="data/icons/hicolor/scalable/apps/io.github.nokse22.asciidraw.svg" align="left"/>
 
 # ASCII Draw
