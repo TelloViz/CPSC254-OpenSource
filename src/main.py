@@ -41,6 +41,7 @@ class AsciiDrawApplication(Adw.Application):
         self.create_action('copy-to-clipboard', self.on_copy_to_clipboard_action)
         self.create_action('open', self.on_open_action, ['<control>o'])
         self.create_action('new-canvas', self.on_new_canvas_action, ['<control>n'])
+        # TODO Create import_action here
 
         self.create_action('undo', self.on_undo_action, ['<control>z'])
         self.create_action('redo', self.on_redo_action, ['<control><shift>z', '<control>y'])
@@ -95,7 +96,7 @@ class AsciiDrawApplication(Adw.Application):
         self.win.save_as_action()
 
     def on_import_action(self, *args):
-        pass
+        pass # TODO call import_image here
 
     def on_open_action(self, *args):
         self.win.open_file()
