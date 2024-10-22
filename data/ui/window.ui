@@ -468,8 +468,8 @@
 						<attribute name="label" translatable="yes">New Canvas</attribute>
 					</item>
 				</section>
+                <!-- TODO  Implement import <section><item><attribute/><attribute/</item></section> here -->
 			</menu>
 		</child>
 	</template>
 </interface>
-
