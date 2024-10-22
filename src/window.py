@@ -19,7 +19,7 @@
 
 from gi.repository import Adw
 from gi.repository import Gtk
-from gi.repository import Gdk, Gio, GObject
+from gi.repository import Gdk, Gio, GObject # TODO Add import to GdkPixbuf here
 
 from .palette import Palette
 from .new_palette_window import NewPaletteDialog
@@ -366,6 +366,18 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
             except IOError:
                 print(f"Error reading {path}.")
 
+    # TODO Implement brightness_to_ascii function here
+
+    # TODO Implement pixbuf_to_rgb_hsb function here
+
+    # TODO Implement rgb_to_hsb function here
+
+    # TODO Implement import_image function here
+
+    # TODO Implement import_image_callback function here
+
+    # TODO on_import_image_response function here
+    
     def new_canvas(self):
         if not self.canvas.is_saved:
             self.save_changes_message(self.make_new_canvas)
