@@ -372,7 +372,14 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
 
     # TODO Implement rgb_to_hsb function here
 
-    # TODO Implement import_image function here
+    def import_image(self):
+        print("import_image called")
+
+        # copy/pasted code from open_file()
+        if not self.canvas.is_saved:
+            self.save_changes_message(self.import_image_callback)
+        else:
+            self.import_image_callback()
 
     # TODO Implement import_image_callback function here
 
