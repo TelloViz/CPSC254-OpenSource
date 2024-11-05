@@ -468,7 +468,12 @@
 						<attribute name="label" translatable="yes">New Canvas</attribute>
 					</item>
 				</section>
-                <!-- TODO  Implement import <section><item><attribute/><attribute/</item></section> here -->
+				<section>
+					<item>
+					<attribute name="action">app.import</attribute>
+					<attribute name="label" translatable="no">Import</attribute>
+					</item>
+				</section>
 			</menu>
 		</child>
 	</template>
