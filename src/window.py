@@ -368,7 +368,26 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
 
     # TODO Implement brightness_to_ascii function here
 
-    # TODO Implement pixbuf_to_rgb_hsb function here
+    def pixbuf_to_rgb_hsb(self, pixels, width, height, channels, rowstride):
+        rgb_values = []
+        hsb_values = []
+
+        for y in range(height):
+            for x in range(width):
+                # Calculate pixel's position in the byte array
+                pixel_index = y * rowstride + x * channels
+                r = pixels[pixel_index]
+                g = pixels[pixel_index + 1]
+                b = pixels[pixel_index + 2]
+
+                # Store RGB values
+                rgb_values.append((r, g, b))
+
+                # Convert RGB to HSB
+                h, s, v = self.rgb_to_hsb(r, g, b)
+                hsb_values.append((h, s, v))
+
+        return rgb_values, hsb_values
 
     # TODO Implement rgb_to_hsb function here
 
