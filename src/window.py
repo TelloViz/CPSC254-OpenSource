@@ -383,7 +383,58 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
 
     # TODO Implement import_image_callback function here
 
-    # TODO on_import_image_response function here
+    # Copied on_open_file_response(self, dialog, response) function
+    def on_import_image_response(self, dialog, response):
+        file = dialog.open_finish(response)
+        print(f"Selected File: {file.get_path()}")
+
+        if file:
+            path = file.get_path()
+            try:
+                # Load an image from a file
+                pixbuf = GdkPixbuf.Pixbuf.new_from_file(path)
+
+                pixels = pixbuf.get_pixels()
+                width = pixbuf.get_width()
+                height = pixbuf.get_height()
+                channels = pixbuf.get_n_channels()
+                rowstride = pixbuf.get_rowstride()
+
+                rgb, hsb = self.pixbuf_to_rgb_hsb(pixels, width, height, channels, rowstride)
+
+                # Print the RGB and HSB values for demonstration
+                # for i in range(len(rgb)):
+                #     print(f"RGB: {rgb[i]}, HSB: {hsb[i]}")
+
+                # for i in range(len(rgb)):
+                #     print(f"{hsb[i][2]}")
+
+                output_path = os.path.expanduser("~/Desktop/ascii-draw/output.txt")
+                # Open the specified path for writing
+                with open(output_path, 'w') as file_out:
+                    for y in range(height):
+                        for x in range(width):
+                            # Correctly calculate the index for the HSB values
+                            pixel_index = (y * rowstride + x * channels)  # Accessing the RGB values
+                            brightness = hsb[pixel_index // channels][2]  # Accessing brightness value
+                            ascii_char = self.brightness_to_ascii(brightness)  # Get ASCII character based on brightness
+                            file_out.write(ascii_char)  # Write the ASCII character
+                        file_out.write("\n")  # New line after each row
+
+                print(f"HSB values written to {output_path}")
+
+                try:
+                    with open(output_path, 'r') as file:
+                        input_string = file.read()
+                    self.canvas.set_content(input_string)
+                    self.file_path = path
+                    file_name = os.path.basename(self.file_path)
+                    self.title_widget.set_subtitle(file_name)
+                except IOError:
+                    print(f"Error reading {path}.")
+
+            except IOError:
+                print(f"Error reading {path}.")
     
     def new_canvas(self):
         if not self.canvas.is_saved:
