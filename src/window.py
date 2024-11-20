@@ -374,7 +374,13 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
 
     # TODO Implement import_image function here
 
-    # TODO Implement import_image_callback function here
+    # Done Implement import_image_callback function here
+    def import_image_callback(self):
+    dialog = Gtk.FileDialog(
+        title=_("Import Image"),
+    )
+    dialog.open(self, None, self.on_import_image_response)
+    self.canvas.clear_preview()
 
     # TODO on_import_image_response function here
     
