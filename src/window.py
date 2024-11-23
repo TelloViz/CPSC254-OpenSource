@@ -366,6 +366,84 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
             except IOError:
                 print(f"Error reading {path}.")
 
+    def downsample_pixbuf(self, pixels, width, height, channels, rowstride, block_size):
+        # Calculate the dimensions of the downsampled image
+        new_width = width // block_size
+        new_height = height // block_size
+        downsampled_rgb = []
+        downsampled_brightness = []
+
+        for y in range(0, height, block_size):
+            row_rgb = []
+            row_brightness = []
+
+            for x in range(0, width, block_size):
+                # Accumulate RGB values within each block
+                total_r, total_g, total_b = 0, 0, 0
+                pixel_count = 0
+
+                for by in range(block_size):
+                    for bx in range(block_size):
+                        px = x + bx
+                        py = y + by
+                        if px < width and py < height:
+                            # Calculate the position of the pixel in the array
+                            pixel_index = py * rowstride + px * channels
+                            r = pixels[pixel_index]
+                            g = pixels[pixel_index + 1]
+                            b = pixels[pixel_index + 2]
+                            total_r += r
+                            total_g += g
+                            total_b += b
+                            pixel_count += 1
+
+                # Compute the average color for the block
+                avg_r = total_r // pixel_count
+                avg_g = total_g // pixel_count
+                avg_b = total_b // pixel_count
+
+                # Convert RGB to brightness (use the max component for simplicity)
+                brightness = max(avg_r, avg_g, avg_b) / 255.0
+                row_rgb.append((avg_r, avg_g, avg_b))
+                row_brightness.append(brightness)
+
+            # Append the row to maintain the correct top-to-bottom layout
+            downsampled_rgb.extend(row_rgb)
+            downsampled_brightness.extend(row_brightness)
+
+        return downsampled_rgb, downsampled_brightness, new_width, new_height
+
+
+
+    def downsample_to_ascii(pixels, width, height, channels, rowstride, block_size):
+        # Step 1: Downsample and get brightness values
+        downsampled_rgb, brightness_values, new_width, new_height = downsample_pixbuf(
+            pixels, width, height, channels, rowstride, block_size
+        )
+
+        # Step 2: Map brightness to ASCII characters
+        ascii_art = ""
+        for i, brightness in enumerate(brightness_values):
+            if i > 0 and i % new_width == 0:
+                ascii_art += "\n"  # Newline at the end of each row
+            ascii_art += self.brightness_to_ascii(brightness)
+
+        return ascii_art
+
+    def pixbuf_downsampled_to_rgb_hsb(pixels, width, height, channels, rowstride, block_size):
+        downsampled_rgb, _, new_width, new_height = downsample_pixbuf(
+            pixels, width, height, channels, rowstride, block_size
+        )
+        rgb_values = []
+        hsb_values = []
+
+        for r, g, b in downsampled_rgb:
+            rgb_values.append((r, g, b))
+            h, s, v = self.rgb_to_hsb(r, g, b)
+            hsb_values.append((h, s, v))
+
+        return rgb_values, hsb_values, new_width, new_height
+
     # TODO Implement brightness_to_ascii function here
 
     def pixbuf_to_rgb_hsb(self, pixels, width, height, channels, rowstride):
