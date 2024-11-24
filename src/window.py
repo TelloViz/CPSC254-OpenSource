@@ -44,7 +44,7 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
     undo_button = Gtk.Template.Child()
     redo_button = Gtk.Template.Child()
     save_import_button = Gtk.Template.Child()
-    title_widget = Gtk.Template.Child()
+    title_widget = Gtk.Template.Child(type=Adw.WindowTitle)
 
     # Tools
     free_button = Gtk.Template.Child()
@@ -433,9 +433,29 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
 
         return downsampled_rgb, downsampled_brightness, new_width, new_height
 
-    def downsample_to_ascii(pixels, width, height, channels, rowstride, block_size):
+    def downsample_to_ascii(self, pixels, width, height, channels, rowstride, block_size):
+        """Convert a pixel buffer to ASCII art by downsampling and mapping brightness to characters.
+
+        This method processes a pixel buffer in two main steps:
+        1. Downsamples the image based on the specified block size
+        2. Maps the resulting brightness values to ASCII characters
+
+        Args:
+            pixels (array): Raw pixel data buffer
+            width (int): Width of the original image in pixels
+            height (int): Height of the original image in pixels
+            channels (int): Number of color channels in the image
+            rowstride (int): Number of bytes between the start of consecutive rows
+            block_size (int): Size of blocks to use for downsampling
+
+        Returns:
+            str: ASCII art representation of the image, with newlines between rows
+
+        Note:
+            The output ASCII art dimensions will be width/block_size x height/block_size
+        """
         # Step 1: Downsample and get brightness values
-        downsampled_rgb, brightness_values, new_width, new_height = downsample_pixbuf(
+        _, brightness_values, new_width, _ = self.downsample_pixbuf(
             pixels, width, height, channels, rowstride, block_size
         )
 
@@ -448,44 +468,59 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
 
         return ascii_art
 
-    def pixbuf_downsampled_to_rgb_hsb(pixels, width, height, channels, rowstride, block_size):
-        downsampled_rgb, _, new_width, new_height = downsample_pixbuf(
-            pixels, width, height, channels, rowstride, block_size
-        )
-        rgb_values = []
-        hsb_values = []
+    def pixbuf_downsampled_to_rgb_hsb(self, pixels, dims, block_size):
+        """Convert pixel buffer to downsampled RGB and HSB values.
 
-        for r, g, b in downsampled_rgb:
-            rgb_values.append((r, g, b))
-            h, s, v = self.rgb_to_hsb(r, g, b)
-            hsb_values.append((h, s, v))
+        Args:
+            pixels: Raw pixel data buffer
+            dims: Tuple of (width, height, channels, rowstride)
+            block_size: Size of blocks for downsampling
 
-        return rgb_values, hsb_values, new_width, new_height
+        Returns:
+            tuple: (rgb_values, hsb_values, new_width, new_height)
+        """
+        width, height, channels, rowstride = dims
+        rgb_data, _, w, h = self.downsample_pixbuf(pixels, width, height, channels, rowstride, block_size)
+        colors = [(rgb, self.rgb_to_hsb(*rgb)) for rgb in rgb_data]
+        return zip(*colors), w, h
 
     # TODO Implement brightness_to_ascii function here
 
-    def pixbuf_to_rgb_hsb(self, pixels, width, height, channels, rowstride):
-        rgb_values = []
-        hsb_values = []
+    def pixbuf_to_rgb_hsb(self, pixels, dims):
+        """Convert raw pixel data to RGB and HSB color values.
 
+        Args:
+            pixels: Raw pixel data buffer
+            dims: Tuple of (width, height, channels, rowstride)
+
+        Returns:
+            Tuple of (rgb_values, hsb_values) lists containing color data
+        """
+        width, height, channels, rowstride = dims
+        colors = []
+        
         for y in range(height):
             for x in range(width):
-                # Calculate pixel's position in the byte array
-                pixel_index = y * rowstride + x * channels
-                r = pixels[pixel_index]
-                g = pixels[pixel_index + 1]
-                b = pixels[pixel_index + 2]
+                idx = y * rowstride + x * channels
+                rgb = tuple(pixels[idx:idx+3])
+                colors.append((rgb, self.rgb_to_hsb(*rgb)))
 
-                # Store RGB values
-                rgb_values.append((r, g, b))
-
-                # Convert RGB to HSB
-                h, s, v = self.rgb_to_hsb(r, g, b)
-                hsb_values.append((h, s, v))
-
-        return rgb_values, hsb_values
+        return zip(*colors)
 
     def rgb_to_hsb(self, r, g, b):
+        """Convert RGB color values to HSB (HSV) color space.
+
+        Args:
+            r (int): Red component (0-255)
+            g (int): Green component (0-255)
+            b (int): Blue component (0-255)
+
+        Returns:
+            tuple: HSB values as (hue, saturation, brightness) where:
+                - hue ranges from 0 to 360 degrees
+                - saturation ranges from 0 to 1
+                - brightness ranges from 0 to 1
+        """
         # Normalize RGB values to the range [0, 1]
         rd = r / 255.0
         gd = g / 255.0
@@ -516,6 +551,9 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
         return h, s, v
 
     def import_image(self):
+        """Opens a file chooser dialog to import an image file and convert it to ASCII art.
+        
+        If there are unsaved changes, prompts user to save before importing."""
         print("import_image called")
 
         # copy/pasted code from open_file()
@@ -524,66 +562,101 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
         else:
             self.import_image_callback()
 
-    # Done Implement import_image_callback function here
     def import_image_callback(self):
+        """Opens a file dialog to select and import an image file.
+        
+        The dialog allows selecting an image file to be converted to ASCII art.
+        Upon selection, clears the canvas preview and opens the file dialog.
+        """
         dialog = Gtk.FileDialog(
             title=_("Import Image"),
         )
         dialog.open(self, None, self.on_import_image_response)
         self.canvas.clear_preview()
 
-    # Copied on_open_file_response(self, dialog, response) function
+    # modified existing `on_open_file_response(self, dialog, response)` function
     def on_import_image_response(self, dialog, response):
+        """Handle the response from the image import file dialog.
+
+        Processes the selected image file by converting it to ASCII art and displaying
+        it on the canvas. The conversion process includes:
+        1. Loading the image file
+        2. Converting pixels to HSB values
+        3. Creating ASCII art based on brightness
+        4. Displaying the result on the canvas
+
+        Args:
+            dialog: The file dialog instance
+            response: Dialog response containing the selected file
+
+        """
         file = dialog.open_finish(response)
         print(f"Selected File: {file.get_path()}")
 
-        if file:
-            path = file.get_path()
-            try:
-                # Load an image from a file
-                pixbuf = GdkPixbuf.Pixbuf.new_from_file(path)
+        if not file:
+            return
 
-                pixels = pixbuf.get_pixels()
-                width = pixbuf.get_width()
-                height = pixbuf.get_height()
-                channels = pixbuf.get_n_channels()
-                rowstride = pixbuf.get_rowstride()
+        path = file.get_path()
+        try:
+            self._process_image_file(path)
+        except IOError:
+            print(f"Error reading {path}.")
 
-                rgb, hsb = self.pixbuf_to_rgb_hsb(pixels, width, height, channels, rowstride)
+    def _process_image_file(self, path):
+        """Process an image file and convert it to ASCII art.
+        
+        Args:
+            path (str): Path to the image file
+        """
+        # Load image
+        pixbuf = GdkPixbuf.Pixbuf.new_from_file(path)
+        pixels = pixbuf.get_pixels()
+        dims = (pixbuf.get_width(), pixbuf.get_height(), 
+                pixbuf.get_n_channels(), pixbuf.get_rowstride())
 
-                # Print the RGB and HSB values for demonstration
-                # for i in range(len(rgb)):
-                #     print(f"RGB: {rgb[i]}, HSB: {hsb[i]}")
+        # Convert to HSB
+        _, hsb = self.pixbuf_to_rgb_hsb(pixels, dims)
 
-                # for i in range(len(rgb)):
-                #     print(f"{hsb[i][2]}")
+        # Generate ASCII art
+        output_path = os.path.expanduser("~/Desktop/ascii-draw/output.txt")
+        self._write_ascii_art(dims, hsb, output_path)
 
-                output_path = os.path.expanduser("~/Desktop/ascii-draw/output.txt")
-                # Open the specified path for writing
-                with open(output_path, 'w') as file_out:
-                    for y in range(height):
-                        for x in range(width):
-                            # Correctly calculate the index for the HSB values
-                            pixel_index = (y * rowstride + x * channels)  # Accessing the RGB values
-                            brightness = hsb[pixel_index // channels][2]  # Accessing brightness value
-                            ascii_char = self.brightness_to_ascii(brightness)  # Get ASCII character based on brightness
-                            file_out.write(ascii_char)  # Write the ASCII character
-                        file_out.write("\n")  # New line after each row
+        # Load result into canvas
+        self._load_ascii_to_canvas(output_path, path)
 
-                print(f"HSB values written to {output_path}")
+    def _write_ascii_art(self, dims, hsb, output_path):
+        """Write ASCII art to a file based on HSB values.
+        
+        Args:
+            dims (tuple): Image dimensions (width, height, channels, rowstride)
+            hsb (list): List of HSB values
+            output_path (str): Output file path
+        """
+        width, height, channels, rowstride = dims
+        with open(output_path, 'w', encoding='utf-8') as file_out:
+            for y in range(height):
+                for x in range(width):
+                    pixel_index = y * rowstride + x * channels
+                    brightness = hsb[pixel_index // channels][2]
+                    ascii_char = self.brightness_to_ascii(brightness)
+                    file_out.write(ascii_char)
+                file_out.write("\n")
 
-                try:
-                    with open(output_path, 'r') as file:
-                        input_string = file.read()
-                    self.canvas.set_content(input_string)
-                    self.file_path = path
-                    file_name = os.path.basename(self.file_path)
-                    self.title_widget.set_subtitle(file_name)
-                except IOError:
-                    print(f"Error reading {path}.")
-
-            except IOError:
-                print(f"Error reading {path}.")
+    def _load_ascii_to_canvas(self, ascii_path, original_path):
+        """Load ASCII art from file into the canvas.
+        
+        Args:
+            ascii_path (str): Path to ASCII art file
+            original_path (str): Path to original image file
+        """
+        try:
+            with open(ascii_path, 'r', encoding='utf-8') as file:
+                input_string = file.read()
+            self.canvas.set_content(input_string)
+            self.file_path = original_path
+            self.title_widget.set_subtitle(os.path.basename(original_path))
+        except IOError:
+            print(f"Error reading {ascii_path}")
     
     def new_canvas(self):
         if not self.canvas.is_saved:
