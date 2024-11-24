@@ -367,12 +367,31 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
                 print(f"Error reading {path}.")
 
     def downsample_pixbuf(self, pixels, width, height, channels, rowstride, block_size):
+        """
+        Downsamples an image represented by a pixel buffer.
+
+        Args:
+            pixels (list): A flat list of pixel values in RGB format.
+            width (int): The width of the original image.
+            height (int): The height of the original image.
+            channels (int): The number of color channels (e.g., 3 for RGB).
+            rowstride (int): The number of bytes per row in the pixel buffer.
+            block_size (int): The size of the block to downsample.
+
+        Returns:
+            tuple: A tuple containing:
+                - downsampled_rgb (list): A list of downsampled RGB values.
+                - downsampled_brightness (list): A list of brightness values for the downsampled image.
+                - new_width (int): The width of the downsampled image.
+                - new_height (int): The height of the downsampled image.
+        """
         # Calculate the dimensions of the downsampled image
         new_width = width // block_size
         new_height = height // block_size
         downsampled_rgb = []
         downsampled_brightness = []
 
+        # Iterate over the image in blocks of size block_size
         for y in range(0, height, block_size):
             row_rgb = []
             row_brightness = []
@@ -382,6 +401,7 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
                 total_r, total_g, total_b = 0, 0, 0
                 pixel_count = 0
 
+                # Iterate over each pixel within the block
                 for by in range(block_size):
                     for bx in range(block_size):
                         px = x + bx
