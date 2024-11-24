@@ -366,7 +366,14 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
             except IOError:
                 print(f"Error reading {path}.")
 
-    # TODO Implement brightness_to_ascii function here
+    # DONE Implement brightness_to_ascii function
+    def brightness_to_ascii(self, brightness):
+    # Wide range of ASCII characters from dark to light
+    ascii_chars = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1{}[]?-_+~<>i!lI;:,\"^`'."
+
+    # Map brightness to the appropriate ASCII character
+    index = int(brightness * (len(ascii_chars) - 1))  # Scale brightness to index range
+    return ascii_chars[index]
 
     # TODO Implement pixbuf_to_rgb_hsb function here
 
