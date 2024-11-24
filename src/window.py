@@ -413,8 +413,6 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
 
         return downsampled_rgb, downsampled_brightness, new_width, new_height
 
-
-
     def downsample_to_ascii(pixels, width, height, channels, rowstride, block_size):
         # Step 1: Downsample and get brightness values
         downsampled_rgb, brightness_values, new_width, new_height = downsample_pixbuf(
@@ -468,34 +466,34 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
         return rgb_values, hsb_values
 
     def rgb_to_hsb(self, r, g, b):
-       # Normalize RGB values to the range [0, 1]
-       rd = r / 255.0
-       gd = g / 255.0
-       bd = b / 255.0
+        # Normalize RGB values to the range [0, 1]
+        rd = r / 255.0
+        gd = g / 255.0
+        bd = b / 255.0
 
-       # Find the maximum and minimum RGB values
-       max_val = max(rd, gd, bd)
-       min_val = min(rd, gd, bd)
-       delta = max_val - min_val
+        # Find the maximum and minimum RGB values
+        max_val = max(rd, gd, bd)
+        min_val = min(rd, gd, bd)
+        delta = max_val - min_val
 
-       # Calculate Hue
-       if delta == 0:
-           h = 0
-       elif max_val == rd:
-           h = 60 * (((gd - bd) / delta) % 6)
-       elif max_val == gd:
-           h = 60 * (((bd - rd) / delta) + 2)
-       else:
-           h = 60 * (((rd - gd) / delta) + 4)
+        # Calculate Hue
+        if delta == 0:
+            h = 0
+        elif max_val == rd:
+            h = 60 * (((gd - bd) / delta) % 6)
+        elif max_val == gd:
+            h = 60 * (((bd - rd) / delta) + 2)
+        else:
+            h = 60 * (((rd - gd) / delta) + 4)
         if h < 0:
-           h += 360
+            h += 360
         # Calculate Saturation
-       s = 0 if max_val == 0 else (delta / max_val)
+        s = 0 if max_val == 0 else (delta / max_val)
 
-       # Brightness is just the max value
-       v = max_val
+        # Brightness is just the max value
+        v = max_val
 
-       return h, s, v
+        return h, s, v
 
     def import_image(self):
         print("import_image called")
