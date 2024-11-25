@@ -366,6 +366,15 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
             except IOError:
                 print(f"Error reading {path}.")
 
+    # DONE Implement brightness_to_ascii function
+    def brightness_to_ascii(self, brightness):
+      # Wide range of ASCII characters from dark to light
+      ascii_chars = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1{}[]?-_+~<>i!lI;:,\"^`'."
+
+      # Map brightness to the appropriate ASCII character
+      index = int(brightness * (len(ascii_chars) - 1))  # Scale brightness to index range
+      return ascii_chars[index]
+    
     def downsample_pixbuf(self, pixels, width, height, channels, rowstride, block_size):
         # Calculate the dimensions of the downsampled image
         new_width = width // block_size
@@ -441,8 +450,6 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
             hsb_values.append((h, s, v))
 
         return rgb_values, hsb_values, new_width, new_height
-
-    # TODO Implement brightness_to_ascii function here
 
     def pixbuf_to_rgb_hsb(self, pixels, width, height, channels, rowstride):
         rgb_values = []
