@@ -19,7 +19,7 @@
 
 from gi.repository import Adw
 from gi.repository import Gtk
-from gi.repository import Gdk, Gio, GObject # TODO Add import to GdkPixbuf here
+from gi.repository import Gdk, Gio, GObject, GdkPixbuf
 
 from .palette import Palette
 from .new_palette_window import NewPaletteDialog
