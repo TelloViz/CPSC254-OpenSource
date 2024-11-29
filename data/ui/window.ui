@@ -468,8 +468,13 @@
 						<attribute name="label" translatable="yes">New Canvas</attribute>
 					</item>
 				</section>
+				<section>
+					<item>
+					<attribute name="action">app.import</attribute>
+					<attribute name="label" translatable="no">Import</attribute>
+					</item>
+				</section>
 			</menu>
 		</child>
 	</template>
 </interface>
-
