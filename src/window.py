@@ -366,7 +366,6 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
             except IOError:
                 print(f"Error reading {path}.")
 
-    # DONE Implement brightness_to_ascii function
     def brightness_to_ascii(self, brightness):
       # Wide range of ASCII characters from dark to light
       ascii_chars = r"$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1{}[]?-_+~<>i!lI;:,\"^`'."
@@ -492,8 +491,10 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
             h = 60 * (((bd - rd) / delta) + 2)
         else:
             h = 60 * (((rd - gd) / delta) + 4)
+
         if h < 0:
             h += 360
+
         # Calculate Saturation
         s = 0 if max_val == 0 else (delta / max_val)
 
@@ -511,7 +512,7 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
         else:
             self.import_image_callback()
 
-    # Done Implement import_image_callback function here
+    # Copied open_file_callback(self) function
     def import_image_callback(self):
         dialog = Gtk.FileDialog(
             title=_("Import Image"),
@@ -536,29 +537,29 @@ class AsciiDrawWindow(Adw.ApplicationWindow):
                 channels = pixbuf.get_n_channels()
                 rowstride = pixbuf.get_rowstride()
 
-                rgb, hsb = self.pixbuf_to_rgb_hsb(pixels, width, height, channels, rowstride)
+                # Set a block size for downsampling (e.g., 4 for a lower-resolution ASCII output)
+                block_size = 1
 
-                # Print the RGB and HSB values for demonstration
-                # for i in range(len(rgb)):
-                #     print(f"RGB: {rgb[i]}, HSB: {hsb[i]}")
-
-                # for i in range(len(rgb)):
-                #     print(f"{hsb[i][2]}")
+                # Perform downsampling to get RGB and brightness values
+                downsampled_rgb, downsampled_brightness, new_width, new_height = self.downsample_pixbuf(
+                    pixels, width, height, channels, rowstride, block_size
+                )
 
                 output_path = os.path.expanduser("~/Desktop/ascii-draw/output.txt")
                 # Open the specified path for writing
                 with open(output_path, 'w') as file_out:
-                    for y in range(height):
-                        for x in range(width):
-                            # Correctly calculate the index for the HSB values
-                            pixel_index = (y * rowstride + x * channels)  # Accessing the RGB values
-                            brightness = hsb[pixel_index // channels][2]  # Accessing brightness value
+                    for y in range(new_height):
+                        for x in range(new_width):
+                            # Calculate the index for the downsampled brightness values
+                            index = y * new_width + x
+                            brightness = downsampled_brightness[index]  # Accessing brightness value
                             ascii_char = self.brightness_to_ascii(brightness)  # Get ASCII character based on brightness
                             file_out.write(ascii_char)  # Write the ASCII character
                         file_out.write("\n")  # New line after each row
 
-                print(f"HSB values written to {output_path}")
+                print(f"ASCII art written to {output_path}")
 
+                # Load and display the ASCII art on the canvas
                 try:
                     with open(output_path, 'r') as file:
                         input_string = file.read()
