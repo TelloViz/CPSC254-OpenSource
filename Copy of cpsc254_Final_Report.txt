@@ -1,0 +1,118 @@
+﻿Group 7 Project Report
+Intention
+The primary goal of the project was to participate in open-source software development by modifying or extending an existing open-source project. We needed to find a project that was open source, interesting, and well-structured. Since we were required to use GTK, that narrowed down what we were looking for.
+When we found ASCII Draw, we decided to add an import feature. This feature would let users import any PNG from their system and have it converted into ASCII art. Once imported, the image could be edited using the program’s existing tools, like the paintbrush, and we could make use of existing functionality, such as saving the ASCII result or copying it to the clipboard.
+We picked this feature because it felt like a natural fit for the program and was something the project could benefit from. It was a mix of curiosity and logical motivation that pushed us toward building this.
+Plan
+In the planning phase of the project, Josh took on the role of project manager and structured the work using a GitHub Project Kanban board. Tasks were divided primarily into function implementation tasks. These reflected the straightforward nature of converting images into ASCII art while ensuring that the scope of each task was manageable and well-defined. The plan also prioritized the use of open-source tools and libraries to align with project requirements. After briefly considering PIL/Pillow for image processing, we identified that GTK's GDK library already provided sufficient functionality. This choice avoided adding external dependencies and adhered to open-source principles.
+A key aspect of the planning process was determining where to integrate the Import feature. To accomplish this, we first pinpointed all logic related to the existing "Save" functionality. Using ctrl+f to search for occurrences of the word "Save" across the codebase, we identified three key files requiring modifications:
+* window.ui: The XML file responsible for the user interface.
+* main.py: The program's main entry point.
+* window.py: The core logic file where most program operations are implemented.
+To streamline this analysis, Josh created a "lean" version of the codebase during the planning phase. This stripped-down version removed all irrelevant features of the program, leaving only the save menu and canvas. By reducing distractions, it became easier to focus on understanding the save-related functionality and planning where to integrate our new feature.
+The next step in planning was to develop a simplified prototype and proof of concept for the Import feature. To achieve this, we duplicated all instances of the save-related code and renamed these duplicates by replacing "Save" with "Import." We used console logs to test how the data flowed through the program and ensure we had a correct understanding of its architecture. This testing was done entirely before implementing any code that would address the actual conversion of images into ASCII. The goal was to validate that our new feature could evolve logically from the save functionality while maintaining alignment with the existing program structure.
+Finally, to maintain clarity and avoid potential conflicts during implementation, Josh added #TODO comments throughout the lean codebase. These comments marked specific locations for planned functions and tasks, such as #TODO pixbuff_to_rgb function here. This organizational step ensured that each team member could work on their respective tasks without confusion or overlap, setting the stage for systematic and efficient execution.
+Execution
+With the groundwork laid in the Planning phase, we proceeded with the implementation of the Import feature. The main task was to integrate functionality that would allow the program to convert PNG images into ASCII art. This required several steps, beginning with the addition of necessary UI components, followed by the development of new functions in the existing codebase.
+1. UI Integration and Initial Setup
+We began by adding the Import button to the user interface. This was done by modifying the window.ui file, an XML-based file responsible for the UI layout. We placed the Import button within the Save submenu to maintain consistency with the existing UI structure.
+To enable the import functionality, we imported the GDK library into the src/window.py file by adding import GDK at the top of the file. This was necessary because GDK provides the image processing functions we needed for handling PNG files.
+2. Core Functionality Implementation
+Several key functions were implemented to handle the conversion of images to ASCII. These functions were added to src/window.py:
+* import_image: This function handles the loading of a PNG image and calls other functions for processing the image data.
+* import_image_callback: This callback function is triggered when the user selects an image to import. It links the UI to the logic for importing the image.
+* on_import_image_response: This function processes the user's response after they select an image file, ensuring that the image is loaded correctly.
+* pixbuf_to_rgb_hsb: This function converts the image data (a GDK pixbuf) into a format that could be processed by the program. It converts the pixel data from a standard RGB color model to HSB for easier manipulation and brightness calculation.
+* rgb_to_hsb: This helper function supports the pixbuf_to_rgb_hsb function by converting the RGB values into HSB (Hue, Saturation, Brightness).
+* brightness_to_ascii: Once the image data was converted into HSB format, this function assigned an ASCII character to each pixel based on its brightness value. This conversion allowed the image to be represented in ASCII art.
+Additionally, we added the import_action in src/window.py to handle the event triggered when the Import button is clicked. The action linked the UI to the logic that loads and converts the image.
+3. Main Program Integration
+We then made sure the Import button was functional by calling the import_image function in src/main.py when the button was clicked. This ensured that the Import action triggered the appropriate image-processing functions when activated.
+4. Image Processing and Optimization
+After the basic image-to-ASCII conversion was working, we addressed the issue of performance. Large images could result in excessively large ASCII output, which would be slow to process and difficult to work with. To optimize the process, we implemented downsampling techniques that reduced the image's resolution before converting it into ASCII. This improved performance and resulted in more manageable output.
+5. Testing and Debugging
+As each function was added, we used console logs and print statements to test the flow of data through the program. This allowed us to confirm that the logic was behaving as expected before fully integrating the final functionality. Once we confirmed that the basic image-to-ASCII conversion worked with smaller images, we moved on to testing with larger images and fine-tuning the downsampling process for better performance.
+Roadblocks
+During the course of the project, we faced several challenges that required problem-solving and adjustments. These roadblocks primarily involved understanding the existing codebase, working with external dependencies, and troubleshooting issues with the development environment. Below are the key challenges we encountered:
+1. Understanding the Existing Codebase
+One of the first hurdles was familiarizing ourselves with the structure of the ASCII Draw codebase. Although the project was well-organized, we initially had difficulty pinpointing where specific functionality, like the Save feature, was implemented.
+Solution: We spent time combing through the codebase and using keywords like "Save" to find the relevant files (e.g., window.ui, main.py, and window.py). To streamline the process, I created a "lean" version of the project, which removed unnecessary features and allowed us to focus solely on the save-related functionality. This made it easier to trace the logic and understand where our new code needed to fit in.
+2. Integration with GTK and GDK
+While we were comfortable with GTK, the process of integrating image manipulation with GDK was more complex than anticipated. GDK's image handling, particularly converting a GDK pixbuf to a usable format for ASCII art conversion, posed challenges.
+Solution: We carefully reviewed GDK's documentation and ran smaller tests to understand how to extract image data. Using this knowledge, we successfully implemented the pixbuf_to_rgb_hsb and rgb_to_hsb functions, which allowed us to convert the image data into a format suitable for ASCII conversion.
+3. Downsampling for Performance Optimization
+Large images took a significant amount of time to process, and the resulting ASCII art was often too large to be practical. This posed a major performance issue.
+Solution: To address this, we implemented downsampling to reduce image sizes before conversion. By resizing the images beforehand, we significantly improved the speed and efficiency of the ASCII conversion process, ensuring that the program could handle larger images without sacrificing performance.
+4. Versioning Issues with Glade (UI Tool)
+Initially, we planned to use Glade for the visual design of the UI. However, we encountered versioning conflicts between the version of GTK used in the project and the version of Glade. Additionally, Glade is no longer actively supported, which made it an unreliable tool for this project.
+Solution: Due to these issues, we decided to proceed by directly editing the window.ui XML file, which represented the UI. While this approach was less convenient than using Glade, it allowed us to move forward without further delays.
+5. Troubleshooting GNOME Builder Installation
+The initial setup of GNOME Builder, the IDE used for this project, also presented a challenge. We encountered issues with missing runtime dependencies that prevented the IDE from working properly.
+Solution: We spent time troubleshooting these missing dependencies and ensuring that the correct runtimes were installed. Once these issues were resolved, we were able to proceed with development in GNOME Builder without further issues.
+Shortcomings
+While the project was a success in extending the functionality of the original ASCII Draw program, there were a few limitations and areas that could benefit from further improvement:
+1. Limited Canvas Size: The canvas size in ASCII Draw is limited to about 50x50 pixels, which users can adjust up to that point. However, any larger canvas size requires programmatic alterations. Additionally, users cannot zoom in or out, and the large number of characters on the screen makes it difficult to intuitively edit large images. Implementing a feature to increase the canvas size beyond this default limit, along with zoom functionality, would significantly improve the user experience for editing large images.
+2. Large Image Conversion and Performance: Converting large images results in a vast number of ASCII characters filling the canvas. When editing such large images, especially using tools like the paintbrush, the program can experience significant slowdowns due to the large amount of data being processed. Implementing optimization strategies, such as chunking the editable space into smaller, manageable areas, could enhance performance and make the editing process smoother.
+3. Viewing Original PNG: It would be beneficial to allow users to view their original PNG alongside the ASCII conversion in a popout window. This would help users compare the converted image to the original, improving the accuracy and editing process.
+4. Reverse Conversion: A logical extension of our work would be to allow users to reverse the conversion process, transforming their ASCII art back into a pixel image. While this wasn't part of the original scope, it seems like a reasonable feature to explore in future iterations of the program.
+5. CLI Functionality: One of the original goals was to implement command-line interface (CLI) functionality, allowing users to convert images through the program using terminal commands. Unfortunately, this feature wasn't developed within the scope of this project.
+6. Error Handling: While the program works as expected, error handling is an area that can always be improved. There are opportunities to handle invalid file types, missing dependencies, and other potential errors more gracefully, providing users with clearer feedback.
+7. Redundancy and Unused Functions: During implementation, some functions ended up being redundant, performing tasks that weren't necessary or duplicating existing functionality. Removing such redundant code would streamline the program and improve maintainability.
+8. Unnecessary Debug Code: Some debugging code may still be present in the program. While this code was useful during development, it clutters the codebase and should be removed in future versions.
+9. Lack of Comments and Documentation: The original project lacks sufficient comments and docstrings, making it difficult for new contributors to quickly understand the code. Adding more documentation and comments would improve the code's readability and maintainability, especially for future development.
+Use of CASE Tools in Development
+Our project utilized various CASE tools, categorized based on their roles in different stages of the Software Development Life Cycle (SDLC):
+Upper CASE Tools
+Upper CASE tools support planning, analysis, and design stages. While the focus of our project was feature implementation, the following tool fits this category:
+* GitHub Projects
+GitHub Projects facilitated task planning and management during the project. It provided a visual workflow for tracking progress and ensuring that development priorities were met.
+Lower CASE Tools
+Lower CASE tools are utilized in implementation, testing, and maintenance. Most of the tools used in our project fall into this category:
+   * GitHub (Version Control and Issue Tracking)
+GitHub's version control and issue tracker played a crucial role during implementation. It managed code changes, tracked bugs, and ensured efficient collaboration among team members. (More on this below)
+   * Meson Build System
+Meson automated the build process, ensuring consistent and error-free builds. This tool reduced manual effort and supported smooth integration of the new feature.
+   * GNOME Builder
+The integrated development environment streamlined coding and debugging during the implementation stage, allowing efficient development of the feature's Python logic and XML-based UI.
+   * Pylint
+Pylint served as a static analysis tool, enforcing coding standards and detecting potential issues in Python code. This contributed to quality assurance and maintainability.
+Integrated CASE Tools
+Integrated CASE tools span multiple stages of the SDLC, from planning to testing. While no single tool we used covered all these stages, GitHub served a partially integrated role:
+      * GitHub (Integration)
+By combining features like version control, issue tracking, and task management, GitHub supported both planning and implementation phases. (More on this below)
+Excluded Tools
+         * Glade
+Although Glade was considered for UI design, versioning issues prevented its use in the project. If used, it would have been classified as a Lower CASE Tool due to its focus on implementation.
+
+
+Git/GitHub Methodology
+To manage the development process efficiently and avoid conflicts, we adopted a structured Git/GitHub branching strategy. This methodology ensured clear separation of concerns and streamlined collaboration:
+            1. Branch Structure
+            * The project began with a primary master branch, representing the stable and production-ready codebase.
+            * A staging branch was created off of master to serve as an integration point for feature development.
+            * For each task (primarily function implementation tasks), an individual branch was created off of staging.
+            2. Workflow
+            * Developers worked on their assigned tasks within their individual branches. These branches isolated code changes, reducing the risk of introducing bugs into the main development branch.
+            * Once a task was complete, the branch was merged into staging. This allowed testing and integration of changes within a controlled environment before introducing them into the production-ready master branch.
+            * After successful testing, the staging branch was merged back into master.
+            3. Benefits of This Approach
+            * Separation of Concerns: By isolating each task into its own branch, we ensured that unrelated changes did not interfere with one another.
+            * Conflict-Free Collaboration: This structure allowed multiple team members to work on the same files concurrently, avoiding merge conflicts.
+            * Incremental Integration: Changes were first tested in the staging branch, minimizing disruptions to the stable master branch.
+This methodology effectively supported collaborative development and maintained code quality throughout the project.
+Conclusion
+The project successfully met its primary goal of extending an open-source program, ASCII Draw, by adding an image import feature to convert PNG files to ASCII art. Although several challenges arose during the development process, including troubleshooting with dependencies and UI editing, these were overcome with a clear methodology and collaboration. Overall, the project demonstrates how careful planning and structured execution can lead to meaningful contributions to open-source software.
+Future Work
+Several improvements could be made to enhance the functionality and usability of the program:
+            * Implementing CLI functionality for image conversion
+            * Enhancing canvas features such as zooming and resizing to accommodate larger images
+            * Allowing reverse conversion from ASCII art to pixel images
+            * Improving error handling and adding more comprehensive documentation for future contributors
+            * Optimizing performance when working with large images to reduce processing time
+References
+            1. Ascii Draw. (2024). ASCII Draw Project. Retrieved from https://github.com/Nokse22/ascii-draw. Licensed under GPLv3.
+            2. GTK. (2024). GTK: The GIMP Toolkit. Retrieved from https://www.gtk.org/. Licensed under the GNU Lesser General Public License.
+            3. GNOME Builder. (2024). GNOME Builder - Integrated Development Environment. Retrieved from https://gitlab.gnome.org/GNOME/gnome-builder. Licensed under the GNU General Public License.
+            4. GDK-Pixbuf. (2024). GDK-Pixbuf: Image Loading and Manipulation. Retrieved from https://gitlab.gnome.org/GNOME/gdk-pixbuf/. Licensed under the GNU Lesser General Public License version 2.1.
+            5. Python. (2024). Python Software Foundation. Retrieved from https://www.python.org/. Licensed under a GPL-compatible license.
+            6. Meson. (2024). Meson Build System. Retrieved from https://mesonbuild.com/. Licensed under Apache License 2.0.
