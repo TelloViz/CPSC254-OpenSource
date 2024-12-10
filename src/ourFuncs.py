@@ -1,5 +1,5 @@
 # ==========================
-# Our Functions Start Here
+# Our src/window.py Functions Start Here
 # ==========================
     def brightness_to_ascii(self, brightness):
         """
@@ -337,6 +337,37 @@
 
             except IOError:
                 print(f"Error reading {path}.")
-# ========================
-# Our Functions End Here
-# ========================
+# ====================================
+# Our src/window.py Functions End Here
+# ====================================
+
+# ====================================
+# Our src/main.py Functions Start Here
+# ====================================
+    def on_import_action(self, *args):
+        """
+        Handles the import action triggered by the user.
+
+        This method is called when the import action is initiated. It calls the
+        import_image method of the win attribute to import an image.
+
+        Args:
+            *args: Variable length argument list.
+        """
+        self.win.import_image()
+# ====================================
+# Our src/main.py Functions Ends Here
+# ====================================
+
+# ===========================================
+# Our data/ui/window.ui Functions Start Here
+# ===========================================
+# <section>
+#     <item>
+#     <attribute name="action">app.import</attribute>
+#     <attribute name="label" translatable="no">Import</attribute>
+#     </item>
+# </section>
+# ===========================================
+# Our data/ui/window.ui Functions Ends Here
+# ===========================================

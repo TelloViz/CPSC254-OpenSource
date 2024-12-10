@@ -96,6 +96,15 @@ class AsciiDrawApplication(Adw.Application):
         self.win.save_as_action()
 
     def on_import_action(self, *args):
+        """
+        Handles the import action triggered by the user.
+
+        This method is called when the import action is initiated. It calls the
+        import_image method of the win attribute to import an image.
+
+        Args:
+            *args: Variable length argument list.
+        """
         self.win.import_image()
 
     def on_open_action(self, *args):
